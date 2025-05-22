@@ -15,8 +15,8 @@ import java.nio.file.StandardCopyOption;
  * @author Edward Evans
  */
 public abstract class AbstractNativeLibrary {
-	// TODO support macOS and Windows style native libs
-	private static String libPath = "/native/libimgal.so";
+	// Use Windows DLL extension for Windows
+	private static String libPath = "/native/imgal_java.dll";
 	public static final SymbolLookup libLookup;
 	public static final Linker linker = Linker.nativeLinker();
 
@@ -24,11 +24,15 @@ public abstract class AbstractNativeLibrary {
 	static {
 		try {
 			URL url = AbstractNativeLibrary.class.getResource(libPath);
-			Path tmpLib = Files.createTempFile("libimgal_java", "so");
+			if (url == null) {
+				throw new RuntimeException("Could not find library at path: " + libPath);
+			}
+			Path tmpLib = Files.createTempFile("imgal_java", ".dll");
 			try (InputStream is = url.openStream()) {
 				Files.copy(is, tmpLib, StandardCopyOption.REPLACE_EXISTING);
 			}
 			tmpLib.toFile().deleteOnExit();
+			// Use Arena.global() for global scope
 			libLookup = SymbolLookup.libraryLookup(tmpLib, Arena.global());
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to load library.", e);
