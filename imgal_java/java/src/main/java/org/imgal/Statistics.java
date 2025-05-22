@@ -25,7 +25,7 @@ public class Statistics extends AbstractNativeLibrary {
 		MemorySegment segment = null;
 		try (Arena arena = Arena.ofConfined()) {
 			// allocate memory for the array and obtain array length
-			segment = arena.allocateFrom(ValueLayout.JAVA_DOUBLE, input);
+			segment = arena.allocateArray(ValueLayout.JAVA_DOUBLE, input);
 			long len = (long) input.length;
 
 			return (double) sumMH.invokeExact(segment, len);
@@ -37,7 +37,7 @@ public class Statistics extends AbstractNativeLibrary {
 	 */
 	private static MethodHandle initSumMH() {
 		// locate the function address
-		MemorySegment fnMS = libLookup.findOrThrow("sum");
+		MemorySegment fnMS = libLookup.find("sum").orElseThrow();
 
 		// create a function descriptor
 		FunctionDescriptor fnSig = FunctionDescriptor.of(
